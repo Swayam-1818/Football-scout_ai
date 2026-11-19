@@ -239,6 +239,12 @@ if page == "Team Overview":
         "potential",
         "age",
         "value_eur"
+        "pace",
+    "shooting",
+    "passing",
+    "dribbling",
+    "defending",
+    "physic"
     ]
 
     squad_display = team_data.sort_values(

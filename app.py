@@ -487,7 +487,7 @@ elif page == "Player Scouting":
         # FUZZY SCORE CHART
         # --------------------------------------
 
-     st.subheader("Player Suitability Comparison")
+        st.subheader("Player Suitability Comparison")
 
         chart_data = top_10.sort_values(
             "Fuzzy Suitability",
@@ -514,7 +514,7 @@ elif page == "Player Scouting":
             showlegend=False
         )
 
-    st.plotly_chart(
+        st.plotly_chart(
             fig,
             use_container_width=True
         )
@@ -523,11 +523,11 @@ elif page == "Player Scouting":
         # DOWNLOAD RECOMMENDATIONS
         # --------------------------------------
 
-    st.subheader("Export Recommendations")
+        st.subheader("Export Recommendations")
 
         csv_data = recommendations.to_csv(index=False).encode("utf-8")
 
-    st.download_button(
+        st.download_button(
             label="⬇️ Download All Recommendations (CSV)",
             data=csv_data,
             file_name="football_scout_recommendations.csv",

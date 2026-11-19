@@ -146,6 +146,29 @@ def calculate_team_strength(team_name):
 
     return strength
 
+def analyze_team_weakness(team_name):
+
+    team_data = df[df["club"] == team_name].copy()
+
+    position_strength = (
+        team_data.groupby("position_group")["overall"]
+        .mean()
+        .round(2)
+    )
+
+    position_strength = position_strength.reindex(
+        ["Goalkeeper", "Defender", "Midfielder", "Forward"]
+    ).dropna()
+
+    if position_strength.empty:
+        return position_strength, None
+
+    weakest_position = position_strength.idxmin()
+
+    return position_strength, weakest_position
+
+
+
 
 # ==========================================
 # TEAM OVERVIEW PAGE

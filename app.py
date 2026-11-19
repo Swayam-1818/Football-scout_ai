@@ -230,34 +230,45 @@ if page == "Team Overview":
 
     # Player Table
 
-    st.subheader("Squad Players")
+   st.subheader("Squad Players")
 
-    display_columns = [
-        "short_name",
-        "main_position",
-        "overall",
-        "potential",
-        "age",
-        "value_eur"
-        "pace",
-        "shooting",
-        "passing",
-        "dribbling",
-        "defending",
-        "physic"
-    ]
+display_columns = [
+    "short_name",
+    "main_position",
+    "overall",
+    "potential",
+    "age",
+    "value_eur",
+    "pace",
+    "shooting",
+    "passing",
+    "dribbling",
+    "defending",
+    "physic"
+]
 
-    squad_display = team_data.sort_values(
-        "overall",
-        ascending=False
+# Keep only columns that actually exist in the dataset
+available_columns = [
+    column for column in display_columns
+    if column in squad_display.columns
+]
+
+missing_columns = [
+    column for column in display_columns
+    if column not in squad_display.columns
+]
+
+if missing_columns:
+    st.warning(
+        "Some player attributes are missing from the dataset: "
+        + ", ".join(missing_columns)
     )
 
-    st.dataframe(
-        squad_display[display_columns],
-        use_container_width=True,
-        hide_index=True
-    )
-
+st.dataframe(
+    squad_display[available_columns],
+    use_container_width=True,
+    hide_index=True
+)
 
 # ==========================================
 # PLAYER SCOUTING PAGE - PLACEHOLDER

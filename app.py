@@ -230,7 +230,7 @@ if page == "Team Overview":
 
     # Player Table
 
-        st.subheader("Squad Players")
+    st.subheader("Squad Players")
 
     display_columns = [
         "short_name",

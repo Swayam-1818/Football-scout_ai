@@ -434,7 +434,7 @@ elif page == "Player Scouting":
             # Store results across Streamlit reruns
             st.session_state["scouting_results"] = recommendations
             st.session_state["scouting_target"] = target_club
-            st.session_state["scouting_position"] = selected_position
+           
 
     # --------------------------------------
     # DISPLAY RESULTS

@@ -1,8 +1,4 @@
-from fuzzy_engine import (
-    evaluate_player_fuzzy,
-    calculate_position_fit,
-    calculate_budget_fit
-)
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -290,13 +286,253 @@ if page == "Team Overview":
 # PLAYER SCOUTING PAGE - PLACEHOLDER
 # ==========================================
 
+
+# ==========================================
+# PLAYER SCOUTING PAGE
+# ==========================================
+
 elif page == "Player Scouting":
 
-    st.header("Player Scouting")
-
-    st.info(
-        "Fuzzy-based player recommendations will be connected in the next step."
+    st.header("🔎 Player Scouting")
+    st.markdown(
+        "Find suitable transfer targets using the Mamdani Fuzzy Logic system."
     )
+
+    st.markdown("---")
+
+    # --------------------------------------
+    # SCOUTING INPUTS
+    # --------------------------------------
+
+    col1, col2, col3 = st.columns(3)
+
+    clubs = sorted(df["club"].dropna().unique())
+
+    with col1:
+        target_club = st.selectbox(
+            "Select Club",
+            clubs,
+            key="scouting_club"
+        )
+
+    with col2:
+        selected_position = st.selectbox(
+            "Required Position",
+            ["Forward", "Midfielder", "Defender"],
+            key="scouting_position"
+        )
+
+    with col3:
+        budget = st.number_input(
+            "Transfer Budget (€)",
+            min_value=100000.0,
+            max_value=500000000.0,
+            value=50000000.0,
+            step=1000000.0,
+            format="%.0f",
+            key="scouting_budget"
+        )
+
+    col4, col5 = st.columns(2)
+
+    with col4:
+        min_overall = st.slider(
+            "Minimum Overall Rating",
+            min_value=40,
+            max_value=95,
+            value=70,
+            key="scouting_overall"
+        )
+
+    with col5:
+        min_potential = st.slider(
+            "Minimum Potential",
+            min_value=40,
+            max_value=99,
+            value=75,
+            key="scouting_potential"
+        )
+
+    st.markdown("---")
+
+    # --------------------------------------
+    # FIND CANDIDATE PLAYERS
+    # --------------------------------------
+
+    if st.button("🔍 Find Recommended Players", use_container_width=True):
+
+        required_positions = position_mapping[selected_position]
+
+        candidates = df[
+            (df["main_position"].isin(required_positions)) &
+            (df["overall"] >= min_overall) &
+            (df["potential"] >= min_potential) &
+            (df["value_eur"] <= budget) &
+            (df["club"] != target_club)
+        ].copy()
+
+        if candidates.empty:
+
+            st.warning(
+                "No players found for these requirements. "
+                "Try increasing the budget or lowering the rating filters."
+            )
+
+        else:
+
+            # --------------------------------------
+            # FUZZY SCORING
+            # --------------------------------------
+
+            scouting_results = []
+
+            for _, player in candidates.iterrows():
+
+                position_score = calculate_position_fit(
+                    player,
+                    selected_position
+                )
+
+                budget_score = calculate_budget_fit(
+                    player["value_eur"],
+                    budget
+                )
+
+                fuzzy_score = evaluate_player_fuzzy(
+                    player["overall"],
+                    player["potential"],
+                    position_score,
+                    budget_score
+                )
+
+                scouting_results.append({
+
+                    "Player": player["short_name"],
+                    "Club": player["club"],
+                    "Position": player["main_position"],
+                    "Overall": player["overall"],
+                    "Potential": player["potential"],
+                    "Age": player["age"],
+                    "Value (€)": player["value_eur"],
+                    "Position Fit": position_score,
+                    "Budget Fit": budget_score,
+                    "Fuzzy Suitability": fuzzy_score
+
+                })
+
+            # --------------------------------------
+            # SORT RECOMMENDATIONS
+            # --------------------------------------
+
+            recommendations = pd.DataFrame(scouting_results)
+
+            recommendations = recommendations.sort_values(
+                "Fuzzy Suitability",
+                ascending=False
+            ).reset_index(drop=True)
+
+            # Store results across Streamlit reruns
+            st.session_state["scouting_results"] = recommendations
+            st.session_state["scouting_target"] = target_club
+            st.session_state["scouting_position"] = selected_position
+
+    # --------------------------------------
+    # DISPLAY RESULTS
+    # --------------------------------------
+
+    if "scouting_results" in st.session_state:
+
+        recommendations = st.session_state["scouting_results"]
+
+        st.subheader("🏆 Recommended Players")
+
+        # KPI metrics
+
+        best_player = recommendations.iloc[0]
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
+            "Players Found",
+            len(recommendations)
+        )
+
+        col2.metric(
+            "Best Recommendation",
+            best_player["Player"]
+        )
+
+        col3.metric(
+            "Best Fuzzy Score",
+            f'{best_player["Fuzzy Suitability"]:.2f}/100'
+        )
+
+        st.markdown("---")
+
+        # --------------------------------------
+        # TOP 10 PLAYERS
+        # --------------------------------------
+
+        st.subheader("Top 10 Transfer Targets")
+
+        top_10 = recommendations.head(10).copy()
+
+        st.dataframe(
+            top_10,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        # --------------------------------------
+        # FUZZY SCORE CHART
+        # --------------------------------------
+
+     st.subheader("Player Suitability Comparison")
+
+        chart_data = top_10.sort_values(
+            "Fuzzy Suitability",
+            ascending=True
+        )
+
+        fig = px.bar(
+            chart_data,
+            x="Fuzzy Suitability",
+            y="Player",
+            orientation="h",
+            color="Fuzzy Suitability",
+            text="Fuzzy Suitability",
+            template="plotly_dark",
+            title="Top 10 Players by Mamdani Fuzzy Score"
+        )
+
+        fig.update_layout(
+            plot_bgcolor="#0B1511",
+            paper_bgcolor="#0B1511",
+            xaxis_title="Suitability Score",
+            xaxis_range=[0, 100],
+            yaxis_title="Player",
+            showlegend=False
+        )
+
+    st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+        # --------------------------------------
+        # DOWNLOAD RECOMMENDATIONS
+        # --------------------------------------
+
+    st.subheader("Export Recommendations")
+
+        csv_data = recommendations.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+            label="⬇️ Download All Recommendations (CSV)",
+            data=csv_data,
+            file_name="football_scout_recommendations.csv",
+            mime="text/csv"
+        )
 
 
 # ==========================================

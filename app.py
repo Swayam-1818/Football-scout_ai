@@ -1,4 +1,8 @@
-
+from fuzzy_engine import (
+    evaluate_player_fuzzy,
+    calculate_position_fit,
+    calculate_budget_fit
+)
 import streamlit as st
 import pandas as pd
 import numpy as np

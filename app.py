@@ -157,7 +157,7 @@ def analyze_team_weakness(team_name):
     )
 
     position_strength = position_strength.reindex(
-        ["Goalkeeper", "Defender", "Midfielder", "Forward"]
+        ["Defender", "Midfielder", "Forward"]
     ).dropna()
 
     if position_strength.empty:

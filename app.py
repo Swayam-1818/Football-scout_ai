@@ -230,7 +230,7 @@ if page == "Team Overview":
 
     # Player Table
 
-    st.subheader("Squad Players")
+        st.subheader("Squad Players")
 
     display_columns = [
         "short_name",
@@ -238,7 +238,13 @@ if page == "Team Overview":
         "overall",
         "potential",
         "age",
-        "value_eur"
+        "value_eur",
+        "pace",
+        "shooting",
+        "passing",
+        "dribbling",
+        "defending",
+        "physic"
     ]
 
     squad_display = team_data.sort_values(
@@ -246,12 +252,35 @@ if page == "Team Overview":
         ascending=False
     )
 
+    available_columns = [
+        col for col in display_columns
+        if col in squad_display.columns
+    ]
+
+    column_names = {
+        "short_name": "Player",
+        "main_position": "Position",
+        "overall": "Overall",
+        "potential": "Potential",
+        "age": "Age",
+        "value_eur": "Value (€)",
+        "pace": "Pace",
+        "shooting": "Shooting",
+        "passing": "Passing",
+        "dribbling": "Dribbling",
+        "defending": "Defending",
+        "physic": "Physical"
+    }
+
+    squad_table = squad_display[available_columns].rename(
+        columns=column_names
+    )
+
     st.dataframe(
-        squad_display[display_columns],
+        squad_table,
         use_container_width=True,
         hide_index=True
     )
-
 
 # ==========================================
 # PLAYER SCOUTING PAGE - PLACEHOLDER

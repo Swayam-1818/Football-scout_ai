@@ -539,10 +539,190 @@ elif page == "Player Scouting":
 # PLAYER COMPARISON PAGE - PLACEHOLDER
 # ==========================================
 
+
 elif page == "Player Comparison":
 
-    st.header("Player Comparison")
+    st.header("⚖️ Player Comparison")
+    st.markdown("Compare two football players based on performance attributes.")
 
-    st.info(
-        "Interactive player comparison will be added in the next step."
+    st.markdown("---")
+
+    # PLAYER SELECTION
+    player_options = df.sort_values("short_name")[
+        ["short_name", "club", "main_position"]
+    ].drop_duplicates()
+
+    player_options["label"] = (
+        player_options["short_name"]
+        + " | "
+        + player_options["club"]
+        + " | "
+        + player_options["main_position"]
     )
+
+    player_labels = player_options["label"].tolist()
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        player1_label = st.selectbox(
+            "Select Player 1",
+            player_labels,
+            key="comparison_player1"
+        )
+
+    with col2:
+        player2_label = st.selectbox(
+            "Select Player 2",
+            player_labels,
+            index=1 if len(player_labels) > 1 else 0,
+            key="comparison_player2"
+        )
+
+    player1 = player_options[
+        player_options["label"] == player1_label
+    ].iloc[0]
+
+    player2 = player_options[
+        player_options["label"] == player2_label
+    ].iloc[0]
+
+    player1_data = df[
+        (df["short_name"] == player1["short_name"]) &
+        (df["club"] == player1["club"]) &
+        (df["main_position"] == player1["main_position"])
+    ].iloc[0]
+
+    player2_data = df[
+        (df["short_name"] == player2["short_name"]) &
+        (df["club"] == player2["club"]) &
+        (df["main_position"] == player2["main_position"])
+    ].iloc[0]
+
+    st.markdown("---")
+
+    # PLAYER PROFILE COMPARISON
+    st.subheader("📊 Player Profile")
+
+    comparison_metrics = {
+        "Overall": "overall",
+        "Potential": "potential",
+        "Age": "age",
+        "Market Value (€)": "value_eur"
+    }
+
+    for label, column in comparison_metrics.items():
+
+        col1, col2, col3 = st.columns([2, 1, 1])
+
+        col1.write(label)
+        col2.metric(player1["short_name"], player1_data[column])
+        col3.metric(player2["short_name"], player2_data[column])
+
+    st.markdown("---")
+
+    # PERFORMANCE ATTRIBUTES
+    st.subheader("⚽ Performance Attributes")
+
+    attributes = [
+        "pace",
+        "shooting",
+        "passing",
+        "dribbling",
+        "defending",
+        "physic"
+    ]
+
+    attribute_labels = [
+        "Pace",
+        "Shooting",
+        "Passing",
+        "Dribbling",
+        "Defending",
+        "Physical"
+    ]
+
+    comparison_data = pd.DataFrame({
+        "Attribute": attribute_labels * 2,
+        "Rating": (
+            [player1_data[a] for a in attributes]
+            + [player2_data[a] for a in attributes]
+        ),
+        "Player": (
+            [player1["short_name"]] * len(attributes)
+            + [player2["short_name"]] * len(attributes)
+        )
+    })
+
+    # RADAR CHART
+    radar_chart = px.line_polar(
+        comparison_data,
+        r="Rating",
+        theta="Attribute",
+        color="Player",
+        line_close=True,
+        markers=True,
+        title="Player Attribute Comparison"
+    )
+
+    radar_chart.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 100]
+            )
+        ),
+        template="plotly_dark",
+        height=600
+    )
+
+    st.plotly_chart(radar_chart, use_container_width=True)
+
+    # ATTRIBUTE TABLE
+    st.subheader("📋 Attribute Comparison")
+
+    attribute_table = pd.DataFrame({
+        "Attribute": attribute_labels,
+        player1["short_name"]: [player1_data[a] for a in attributes],
+        player2["short_name"]: [player2_data[a] for a in attributes]
+    })
+
+    st.dataframe(
+        attribute_table,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.markdown("---")
+
+    # COMPARISON SUMMARY
+    st.subheader("🏆 Comparison Summary")
+
+    player1_score = player1_data["overall"]
+    player2_score = player2_data["overall"]
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Player 1 Overall",
+        player1_score
+    )
+
+    col2.metric(
+        "Player 2 Overall",
+        player2_score
+    )
+
+    if player1_score > player2_score:
+        col3.success(
+            f"⭐ {player1['short_name']} has the higher overall rating."
+        )
+
+    elif player2_score > player1_score:
+        col3.success(
+            f"⭐ {player2['short_name']} has the higher overall rating."
+        )
+
+    else:
+        col3.info("Both players have the same overall rating.")
+

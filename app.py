@@ -186,6 +186,59 @@ if page == "Team Overview":
     )
 
     team_data = df[df["club"] == selected_team].copy()
+        # TEAM WEAKNESS ANALYSIS
+    position_strength, weakest_position = analyze_team_weakness(selected_team)
+
+    st.subheader("🔍 Team Weakness Analysis")
+
+    if weakest_position is not None:
+
+        weakest_rating = position_strength[weakest_position]
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
+            "Weakest Position",
+            weakest_position
+        )
+
+        col2.metric(
+            "Average Rating",
+            weakest_rating
+        )
+
+        col3.metric(
+            "Recommended Scouting",
+            weakest_position
+        )
+
+        st.warning(
+            f"⚠️ {selected_team} should consider strengthening "
+            f"its {weakest_position} position."
+        )
+
+        st.markdown("### Position Strength")
+
+        strength_chart = px.bar(
+            position_strength.reset_index(),
+            x="position_group",
+            y="overall",
+            color="overall",
+            text="overall",
+            title="Average Rating by Position"
+        )
+
+        strength_chart.update_layout(
+            template="plotly_dark",
+            yaxis_title="Average Overall Rating",
+            xaxis_title="Position",
+            yaxis_range=[0, 100]
+        )
+
+        st.plotly_chart(
+            strength_chart,
+            use_container_width=True
+        )
 
     # Statistics
 

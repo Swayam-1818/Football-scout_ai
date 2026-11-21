@@ -391,12 +391,24 @@ elif page == "Player Scouting":
             key="scouting_club"
         )
 
+    
+    # Analyze selected club's weakest position
+    scouting_strength, scouting_weakest = analyze_team_weakness(target_club)
+
+    scouting_positions = ["Forward", "Midfielder", "Defender"]
+
+    if scouting_weakest in scouting_positions:
+        scouting_positions.remove(scouting_weakest)
+        scouting_positions.insert(0, scouting_weakest)
+
     with col2:
         selected_position = st.selectbox(
             "Required Position",
-            ["Forward", "Midfielder", "Defender"],
-            key="scouting_position"
+            scouting_positions,
+            index=0,
+            key="scouting_position_auto"
         )
+
 
     with col3:
         budget = st.number_input(
